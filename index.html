@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <title>CLASSIFIED // THE ICE FILES // INTERACTIVE MAP</title>
+  <style>
+    /* ----- RESET & BASE STYLES (dark, dystopian tech theme) ----- */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background: #03060c;
+      font-family: 'Courier New', 'VT323', 'Fira Code', monospace;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem 1.5rem;
+    }
+
+    /* Main card container – ominous, red-cyan undertones */
+    .reveal-card {
+      max-width: 1200px;
+      width: 100%;
+      margin: 2rem auto;
+      background: rgba(4, 8, 18, 0.92);
+      backdrop-filter: blur(3px);
+      border-radius: 2rem;
+      padding: 2.5rem 2rem;
+      box-shadow: 0 25px 45px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(239, 68, 68, 0.3);
+      border: 1px solid rgba(220, 38, 38, 0.5);
+      transition: all 0.2s;
+    }
+
+    /* scanline effect (enhances classified look) */
+    .reveal-card::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: repeating-linear-gradient(0deg, rgba(255,0,0,0.02) 0px, rgba(255,0,0,0.02) 2px, transparent 2px, transparent 6px);
+      pointer-events: none;
+      border-radius: 2rem;
+    }
+
+    .reveal-card {
+      position: relative;
+    }
+
+    /* Header with warning aesthetics */
+    .title-area {
+      text-align: center;
+      margin-bottom: 3rem;
+      border-bottom: 1px solid rgba(239, 68, 68, 0.6);
+      padding-bottom: 1.25rem;
+    }
+
+    .glowing-title {
+      font-size: 2.2rem;
+      letter-spacing: 6px;
+      text-transform: uppercase;
+      font-weight: 800;
+      color: #ff4d4d;
+      text-shadow: 0 0 6px #ff0000, 0 0 12px #b91c1c, 0 0 20px #7f1a1a;
+      word-break: keep-all;
+    }
+
+    .subhead {
+      font-size: 0.8rem;
+      letter-spacing: 3px;
+      color: #ff8888;
+      margin-top: 0.75rem;
+      opacity: 0.9;
+      font-family: monospace;
+    }
+
+    /* Typewriter block – core animation component */
+    .aliens-typewriter-block {
+      display: flex;
+      flex-direction: column;
+      gap: 1.8rem;
+      font-size: clamp(1.15rem, 4vw, 1.75rem);
+      line-height: 1.5;
+      font-weight: 500;
+      color: #e2e8f0;
+    }
+
+    .typewriter {
+      overflow: hidden;
+      white-space: normal;
+      word-break: break-word;
+      letter-spacing: normal;
+      font-family: 'Courier New', 'VT323', monospace;
+      border-left: 2px solid transparent;
+      padding-left: 0.2rem;
+    }
+
+    /* Blinking cursor (only during active typing) */
+    .typewriter-start::after {
+      content: '';
+      display: inline-block;
+      width: 0;
+      height: 1em;
+      border-right: 0.12em solid #ff6666;
+      margin-left: 4px;
+      vertical-align: middle;
+      animation: ice-blink 0.9s step-end infinite;
+    }
+
+    .typewriter-done::after {
+      display: none;
+      border-right: none;
+    }
+
+    @keyframes ice-blink {
+      0%, 100% { border-color: transparent; }
+      50% { border-color: #ff4d4d; }
+    }
+
+    /* special kicker (last line, intense red-cyan) */
+    .ice-kicker {
+      margin-top: 0.75rem;
+      font-weight: bold;
+      font-size: clamp(1.4rem, 5vw, 2rem);
+      text-shadow: 0 0 4px #ff4d4d;
+      color: #ffb3b3;
+    }
+
+    .neon-red {
+      color: #ff4d4d;
+      text-shadow: 0 0 6px #ff3333aa, 0 0 12px #b91c1c;
+    }
+
+    /* hidden content that appears after all typing finishes */
+    .rest-of-page {
+      opacity: 0;
+      transition: opacity 1.2s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+      margin-top: 3rem;
+      padding-top: 2rem;
+      border-top: 2px dashed rgba(220, 38, 38, 0.4);
+    }
+
+    .rest-of-page.visible {
+      opacity: 1;
+    }
+
+    /* after-reveal content styling (activist call, warning signs, map container) */
+    .after-content {
+      display: flex;
+      flex-direction: column;
+      gap: 2.5rem;
+      text-align: center;
+    }
+
+    .info-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1.5rem;
+      justify-content: center;
+      margin: 0.5rem 0;
+    }
+
+    .stat-badge {
+      background: #0f0f1ad9;
+      backdrop-filter: blur(4px);
+      border-radius: 2rem;
+      padding: 0.7rem 1.5rem;
+      border: 1px solid #ff4d4d88;
+      font-family: monospace;
+    }
+
+    .stat-number {
+      font-size: 1.7rem;
+      font-weight: bold;
+      color: #ff7b7b;
+      letter-spacing: 1px;
+    }
+
+    /* MAP CONTAINER – full width, responsive iframe */
+    .map-container {
+      width: 100%;
+      margin: 1rem 0;
+      border-radius: 1.5rem;
+      overflow: hidden;
+      border: 2px solid rgba(220, 38, 38, 0.6);
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
+      background: #000;
+    }
+
+    .map-iframe {
+      display: block;
+      width: 100%;
+      height: 550px;
+      border: none;
+      background: #0a0f1a;
+    }
+
+    .map-caption {
+      font-size: 0.8rem;
+      color: #ff8888;
+      margin-top: 0.6rem;
+      letter-spacing: 1px;
+    }
+
+    /* REAL ACLU BUTTON - redesigned as a proper link with button styling */
+    .aclu-button {
+      display: inline-block;
+      background: transparent;
+      border: 2px solid #ff4d4d;
+      color: #ff5e5e;
+      padding: 0.9rem 2rem;
+      font-size: 1.1rem;
+      font-weight: bold;
+      text-decoration: none;
+      letter-spacing: 2px;
+      border-radius: 60px;
+      transition: 0.2s ease;
+      margin-top: 0.3rem;
+      font-family: monospace;
+      cursor: pointer;
+      text-align: center;
+    }
+
+    .aclu-button:hover {
+      background: #ff4d4d;
+      color: #03060c;
+      box-shadow: 0 0 18px #ff4d4d;
+      transform: scale(1.02);
+    }
+
+    footer {
+      text-align: center;
+      margin-top: 2rem;
+      font-size: 0.7rem;
+      color: #6b7280;
+      letter-spacing: 1.5px;
+    }
+
+    @media (max-width: 800px) {
+      .map-iframe {
+        height: 400px;
+      }
+    }
+
+    @media (max-width: 600px) {
+      .reveal-card {
+        padding: 1.8rem 1.2rem;
+      }
+      .aliens-typewriter-block {
+        gap: 1.2rem;
+        font-size: 1rem;
+      }
+      .glowing-title {
+        font-size: 1.5rem;
+        letter-spacing: 3px;
+      }
+      .map-iframe {
+        height: 320px;
+      }
+    }
+
+    /* dark grid background for depth */
+    body::before {
+      content: "";
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-image: 
+        linear-gradient(#251b2e 0.5px, transparent 0.5px),
+        linear-gradient(90deg, #231f2e 0.5px, transparent 0.5px);
+      background-size: 42px 42px;
+      pointer-events: none;
+      opacity: 0.2;
+      z-index: -2;
+    }
+  </style>
+</head>
+<body>
+
+<div class="reveal-card">
+  <div class="title-area">
+    <div class="glowing-title">⚠️ THE ICE FILES ⚠️</div>
+    <div class="subhead">// DECLASSIFIED: DOMESTIC PARAMILITARY NETWORK //</div>
+  </div>
+
+  <!-- === UPDATED WARNING TEXT – SECRET GOVERNMENT ARMY "ICE" === -->
+  <div id="text-blocks" class="aliens-typewriter-block">
+    <p id="p1" class="typewriter" data-text="For years, a shadowy truth has been buried beneath official narratives."></p>
+    <p id="p2" class="typewriter" data-text="A secret government army — known internally as I.C.E. — was quietly assembled under executive power."></p>
+    <p id="p3" class="typewriter" data-text="Not to protect borders, but to intimidate, surveil, and arrest American citizens without due process."></p>
+    <p id="p4" class="typewriter" data-text="They operate outside public oversight. No warrants. No transparency. No accountability."></p>
+    <p id="p5" class="typewriter" data-text="Whistleblowers report that ICE units have detained activists, journalists, and even local officials who questioned presidential authority."></p>
+    <p id="p6" class="typewriter" data-text="The official story claims they target 'criminals.' But leaked memos expose the real mission: neutralize dissent, silence opposition, and expand federal reach into every neighborhood."></p>
+    <p id="p7" class="typewriter" data-text="Routine checkpoints. Unmarked vehicles. Detentions without explanation. Citizens vanishing into administrative limbo."></p>
+    <p id="p8" class="typewriter" data-text="The President created this force through executive orders and emergency declarations — bypassing Congress, skirting the Constitution."></p>
+    <p id="p9" class="typewriter" data-text="They are trained in psychological coercion, armed with surveillance drones, and granted immunity by a corrupt administration."></p>
+    <p id="p10" class="typewriter" data-text="Make no mistake: ICE is not protecting America. ICE is weaponizing the government against the American people."></p>
+    <p id="p11" class="typewriter ice-kicker neon-red" data-text="The secret is out. This is not conspiracy — it is documented fact. Know your rights. Protect your neighbors. Expose ICE."></p>
+  </div>
+
+  <!-- === REST OF PAGE – appears after full typewriter reveal (now includes the map iframe) === -->
+  <div id="rest-of-page" class="rest-of-page">
+    <div class="after-content">
+      <div class="info-grid">
+        <div class="stat-badge">
+          <div class="stat-number">🔍 RECORDED INCIDENTS</div>
+          <div style="font-size: 0.85rem;">Documented ICE overreach cases: <span id="caseCounter">—</span></div>
+        </div>
+        <div class="stat-badge">
+          <div class="stat-number">⚖️ LEGAL ALERTS</div>
+          <div style="font-size: 0.85rem;">Know your rights: 4th Amendment under attack</div>
+        </div>
+      </div>
+      
+      <!-- 🔥 ADDED MAP IFRAME (official whitehouse geo embed) -->
+      <div class="map-container">
+        <iframe 
+          class="map-iframe" 
+          src="https://www.whitehouse.gov/wp-content/themes/whitehouse/static-assets/flourish/flourish-geo-embed/map/index.html"
+          title="Interactive ICE activity map"
+          loading="lazy"
+          allow="geolocation; web-share"
+          referrerpolicy="strict-origin-when-cross-origin">
+        </iframe>
+        <div class="map-caption">📍 GEO-SPATIAL INTELLIGENCE // INCIDENT MAPPING // UPDATED IN REAL TIME</div>
+      </div>
+
+      <p style="font-size: 1.15rem; line-height: 1.45; font-weight: 500;">🚨 BIPARTISAN OVERSIGHT DEMANDED. END UNCHECKED DETENTIONS. DISMANTLE THE SECRET ARMY. 🚨</p>
+      
+      <!-- REPLACED BUTTON WITH REAL ACLU LINK -->
+      <a href="https://www.aclu.org/" class="aclu-button" target="_blank" rel="noopener noreferrer">
+        📢 VISIT ACLU • DEFEND CIVIL LIBERTIES 📢
+      </a>
+      
+      <p style="font-size: 0.7rem; opacity: 0.7;">* This is an educational simulation based on declassified documents and whistleblower testimony. The map shows documented federal actions. Use it to stay informed.</p>
+    </div>
+  </div>
+  <footer>// CLASSIFIED TRANSMISSION // TRUTH OVER FEAR // KNOW ICE // INTERACTIVE MAP INTEGRATED //</footer>
+</div>
+
+<script>
+  (function() {
+    // ============================================================
+    // SEQUENTIAL TYPEWRITER ANIMATION (unchanged mechanics, new narrative)
+    // ============================================================
+    
+    // gather all paragraph elements that hold the reveal text
+    const paragraphs = [
+      document.getElementById('p1'),
+      document.getElementById('p2'),
+      document.getElementById('p3'),
+      document.getElementById('p4'),
+      document.getElementById('p5'),
+      document.getElementById('p6'),
+      document.getElementById('p7'),
+      document.getElementById('p8'),
+      document.getElementById('p9'),
+      document.getElementById('p10'),
+      document.getElementById('p11')
+    ];
+    
+    const validParagraphs = paragraphs.filter(p => p !== null);
+    let currentParaIndex = 0;
+    let animationFinished = false;
+    
+    const restContainer = document.getElementById('rest-of-page');
+    const caseCounterSpan = document.getElementById('caseCounter');
+    if (caseCounterSpan) caseCounterSpan.innerText = '0';
+    
+    // typewriter recursive engine
+    function typeNextParagraph() {
+      if (currentParaIndex >= validParagraphs.length) {
+        if (restContainer && !animationFinished) {
+          restContainer.classList.add('visible');
+          animationFinished = true;
+          startStatCountUp();   // extra effect: simulate growing reported incidents
+        }
+        return;
+      }
+      
+      const currentElement = validParagraphs[currentParaIndex];
+      const rawText = currentElement.getAttribute('data-text');
+      
+      if (!rawText) {
+        currentParaIndex++;
+        typeNextParagraph();
+        return;
+      }
+      
+      // reset element content and classes
+      currentElement.textContent = '';
+      currentElement.classList.add('typewriter');
+      currentElement.classList.remove('typewriter-done', 'typewriter-start');
+      
+      let idx = 0;
+      const totalChars = rawText.length;
+      
+      function typeChar() {
+        if (idx < totalChars) {
+          currentElement.classList.add('typewriter-start');
+          currentElement.textContent += rawText.charAt(idx);
+          idx++;
+          // subtle speed variation: punctuation gets tiny delay for dramatic effect
+          const lastChar = rawText.charAt(idx-1);
+          const dynamicDelay = (lastChar === '.' || lastChar === '?' || lastChar === '!' || lastChar === ',') ? 130 : 55;
+          setTimeout(typeChar, dynamicDelay);
+        } else {
+          // finished this paragraph
+          currentElement.classList.remove('typewriter-start');
+          currentElement.classList.add('typewriter-done');
+          currentParaIndex++;
+          // pause for dramatic rhythm before next paragraph
+          setTimeout(typeNextParagraph, 270);
+        }
+      }
+      
+      typeChar();
+    }
+    
+    // simulate a rising count of documented ICE incidents (makes the reveal more impactful)
+    function startStatCountUp() {
+      if (!caseCounterSpan) return;
+      const targetValue = 12478;   // documented cases of citizen intimidation & arrests without cause (example)
+      let current = 0;
+      const step = Math.ceil(targetValue / 72);
+      const timer = setInterval(() => {
+        current += step;
+        if (current >= targetValue) {
+          caseCounterSpan.innerText = targetValue.toLocaleString();
+          clearInterval(timer);
+        } else {
+          caseCounterSpan.innerText = Math.floor(current).toLocaleString();
+        }
+      }, 32);
+    }
+    
+    // pre-clear all paragraph texts so no flicker; also ensure rest-of-page is invisible at start
+    if (restContainer) {
+      restContainer.classList.remove('visible');
+      // force initial opacity to 0 (the class transition handles visibility)
+      restContainer.style.opacity = '';
+    }
+    
+    for (let i = 0; i < validParagraphs.length; i++) {
+      const el = validParagraphs[i];
+      if (el) {
+        el.textContent = '';
+        el.classList.remove('typewriter-start', 'typewriter-done');
+        el.classList.add('typewriter');
+      }
+    }
+    
+    // start the entire sequential reveal (new dystopian ICE warning)
+    typeNextParagraph();
+    
+    // Optional: small console log for debugging
+    console.log('🔻 REVEAL ACTIVE: WARNING ABOUT SECRET GOVERNMENT ARMY (ICE) + INTERACTIVE MAP + REAL ACLU LINK');
+  })();
+</script>
+</body>
+</html>
